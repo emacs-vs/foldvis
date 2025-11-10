@@ -158,11 +158,12 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
 
 (defun foldvis--choose-backend ()
   "Set the current possible backend."
-  (setq foldvis--backend (or foldvis--backend
-                             (cl-some (lambda (x)
-                                        (when (featurep x)
-                                          x))
-                                      foldvis-backends))))
+  (setq foldvis--backend
+        (or foldvis--backend
+            (cl-some (lambda (x)
+                       (when (featurep x)
+                         x))
+                     foldvis-backends))))
 
 (defun foldvis--call-backend (name)
   "Call the backend function by NAME."
@@ -200,6 +201,15 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
          (if foldvis-mode (foldvis--enable) (foldvis--disable)))
         (t (message "No folding backend found: %s" foldvis--backend)
            (foldvis-mode -1))))
+
+(defun foldvis--turn-on-foldvis-mode ()
+  "Turn on the `foldvis-mode'."
+  (foldvis-mode 1))
+
+;;;###autoload
+(define-globalized-minor-mode global-foldvis-mode
+  foldvis-mode foldvis--turn-on-foldvis-mode
+  :group 'foldvis)
 
 ;;
 ;; (@* "Events" )
