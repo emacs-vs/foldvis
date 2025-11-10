@@ -4,6 +4,8 @@
 # foldvis
 > Display indicators for various folding systems
 
+[![CI](https://github.com/emacs-vs/foldvis/actions/workflows/test.yml/badge.svg)](https://github.com/emacs-vs/foldvis/actions/workflows/test.yml)
+
 Supporting backends:
 
 - [hideshow][]

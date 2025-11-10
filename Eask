@@ -21,6 +21,7 @@
 (depends-on "fringe-helper")
 
 (development
+ (depends-on "origami")
  (depends-on "ts-fold")
  (when (version<= "29.1" emacs-version)
    (depends-on "treesit-fold")))
