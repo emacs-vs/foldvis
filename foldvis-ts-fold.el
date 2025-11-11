@@ -63,7 +63,7 @@
   (advice-remove 'ts-fold--after-command #'foldvis-refresh))
 
 ;;;###autoload
-(defun foldvis-ts-fold--valid ()
+(defun foldvis-ts-fold--valid-p ()
   "Return non-nil if the backend is valid."
   (and (featurep 'ts-fold) ts-fold-mode))
 

@@ -44,7 +44,7 @@
   (remove-hook 'hs-hide-hook #'foldvis-hideshow--refresh t))
 
 ;;;###autoload
-(defun foldvis-hideshow--valid ()
+(defun foldvis-hideshow--valid-p ()
   "Return non-nil if the backend is valid."
   (and (featurep 'hideshow) hs-minor-mode))
 
@@ -62,11 +62,11 @@
 ;; XXX: This section is mostly copy-pasted code. It’s admittedly messy,
 ;; but I’m too lazy to clean it up right now.
 
-(defvar foldvis-hideshow--nodes nil
+(defvar-local foldvis-hideshow--nodes nil
   "Store a list of nodes to fold.")
 
 (defun foldvis-hideshow--make-overlay (b e kind &optional b-offset e-offset)
-  "Modified from the function `hs-make-overlay'."
+  "To override the function `hs-make-overlay'."
   (push (list b e kind b-offset e-offset) foldvis-hideshow--nodes))
 
 (defun foldvis-hideshow--hide-comment-region (beg end &optional repos-end)
@@ -106,42 +106,44 @@
           (foldvis-hideshow--make-overlay p q 'code (- header-end p)))
         (goto-char (if end q (min p header-end)))))))
 
-(defun foldvis-hideshow--nodes ()
-  "Return a list of foldable nodes.
+(defun foldvis-hideshow--hide-all ()
+  "Modified from the function `hs-hide-all'."
+  (hs-life-goes-on
+   (save-excursion
+     (goto-char (point-min))
+     (syntax-propertize (point-max))
+     (let ((re (concat "\\("
+                       hs-block-start-regexp
+                       "\\)"
+                       (if hs-hide-comments-when-hiding-all
+                           (concat "\\|\\("
+                                   hs-c-start-regexp
+                                   "\\)")
+                         ""))))
+       (while (funcall hs-find-next-block-func re (point-max)
+                       hs-hide-comments-when-hiding-all)
+         (if (match-beginning 1)
+             ;; We have found a block beginning.
+             (progn
+               (goto-char (match-beginning 1))
+               (unless (if hs-hide-all-non-comment-function
+                           (funcall hs-hide-all-non-comment-function)
+                         (foldvis-hideshow--hide-block-at-point t))
+                 ;; Go to end of matched data to prevent from getting stuck
+                 ;; with an endless loop.
+                 (when (looking-at hs-block-start-regexp)
+                   (goto-char (match-end 0)))))
+           ;; found a comment, probably
+           (let ((c-reg (hs-inside-comment-p)))
+             (when (and c-reg (car c-reg))
+               (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
+                   (foldvis-hideshow--hide-block-at-point t c-reg)
+                 (goto-char (nth 1 c-reg)))))))))))
 
-Modified from the function `hs-hide-all'."
+(defun foldvis-hideshow--nodes ()
+  "Return a list of foldable nodes."
   (let (foldvis-hideshow--nodes)
-    (hs-life-goes-on
-     (save-excursion
-       (goto-char (point-min))
-       (syntax-propertize (point-max))
-       (let ((re (concat "\\("
-                         hs-block-start-regexp
-                         "\\)"
-                         (if hs-hide-comments-when-hiding-all
-                             (concat "\\|\\("
-                                     hs-c-start-regexp
-                                     "\\)")
-                           ""))))
-         (while (funcall hs-find-next-block-func re (point-max)
-                         hs-hide-comments-when-hiding-all)
-           (if (match-beginning 1)
-               ;; We have found a block beginning.
-               (progn
-                 (goto-char (match-beginning 1))
-                 (unless (if hs-hide-all-non-comment-function
-                             (funcall hs-hide-all-non-comment-function)
-                           (foldvis-hideshow--hide-block-at-point t))
-                   ;; Go to end of matched data to prevent from getting stuck
-                   ;; with an endless loop.
-                   (when (looking-at hs-block-start-regexp)
-                     (goto-char (match-end 0)))))
-             ;; found a comment, probably
-             (let ((c-reg (hs-inside-comment-p)))
-               (when (and c-reg (car c-reg))
-                 (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
-                     (foldvis-hideshow--hide-block-at-point t c-reg)
-                   (goto-char (nth 1 c-reg))))))))))
+    (ignore-errors (foldvis-hideshow--hide-all))
     foldvis-hideshow--nodes))
 
 ;;

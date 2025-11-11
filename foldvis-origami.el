@@ -41,7 +41,7 @@
 ;;; Entry
 
 ;;;###autoload
-(defun foldvis-origami--valid ()
+(defun foldvis-origami--valid-p ()
   "Return non-nil if the backend is valid."
   (and (featurep 'origami) origami-mode))
 

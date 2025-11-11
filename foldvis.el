@@ -168,7 +168,7 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
 (defun foldvis--choose-backend ()
   "Set the current possible backend."
   (let* ((backend (cl-some (lambda (x)
-                             (when (foldvis--call-backend "-valid" x)
+                             (when (foldvis--call-backend "-valid-p" x)
                                x))
                            foldvis-backends))
          (changed (and foldvis--backend backend

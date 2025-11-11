@@ -55,7 +55,7 @@
   (advice-remove 'treesit-fold--after-command #'foldvis-refresh))
 
 ;;;###autoload
-(defun foldvis-treesit-fold--valid ()
+(defun foldvis-treesit-fold--valid-p ()
   "Return non-nil if the backend is valid."
   (and (featurep 'treesit-fold) treesit-fold-mode))
 

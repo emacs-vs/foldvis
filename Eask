@@ -16,6 +16,8 @@
 (source 'melpa)
 (source 'jcs-elpa)
 
+(source-priority 'jcs-elpa 90)
+
 (depends-on "emacs" "26.1")
 (depends-on "elenv")
 (depends-on "fringe-helper")

@@ -8,6 +8,7 @@
 
 A list of supported backends:
 
+- [outline-minor-mode][]
 - [hideshow][]
 - [origami.el][]
 - [ts-fold][] / [treesit-fold][]
@@ -86,6 +87,7 @@ See [`LICENSE`](./LICENSE) for details.
 
 <!-- Links -->
 
+[outline-minor-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Outline-Minor-Mode.html
 [hideshow]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Hideshow.html
 
 [origami.el]: https://github.com/gregsexton/origami.el
