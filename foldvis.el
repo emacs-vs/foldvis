@@ -167,15 +167,19 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
 
 (defun foldvis--choose-backend ()
   "Set the current possible backend."
-  (let ((backend (cl-some (lambda (x)
-                            (when (foldvis--call-backend "-valid" x)
-                              x))
-                          foldvis-backends)))
-    (when (and foldvis--backend
-               (not (equal foldvis--backend backend)))  ; has changed?
-      ;; TODO: ..
-      )
-    (setq foldvis--backend backend)))
+  (let* ((backend (cl-some (lambda (x)
+                             (when (foldvis--call-backend "-valid" x)
+                               x))
+                           foldvis-backends))
+         (changed (and foldvis--backend backend
+                       (not (equal foldvis--backend backend)))))
+    (setq foldvis--backend backend)
+    ;; If backend has changed, re-render once.
+    (when changed
+      (foldvis--render-buffer))
+    ;; If backend has become nil, remove it.
+    (unless backend
+      (foldvis--remove-ovs-buffer))))
 
 (defun foldvis--enable ()
   "Start folding minor mode."
@@ -183,11 +187,11 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
   (add-hook 'after-save-hook #'foldvis--trigger-render nil t)
   (add-hook 'post-command-hook #'foldvis--post-command nil t)
   (add-hook 'window-size-change-functions #'foldvis--size-change)
-  (add-hook 'window-scroll-functions #'foldvis--scroll)
-  (foldvis--render-buffer))
+  (add-hook 'window-scroll-functions #'foldvis--scroll))
 
 (defun foldvis--disable ()
   "Stop folding minor mode."
+  (setq foldvis--backend nil)
   (foldvis--call-backend "-disable")
   (remove-hook 'after-save-hook #'foldvis--trigger-render t)
   (remove-hook 'post-command-hook #'foldvis--post-command t)
@@ -201,11 +205,7 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
   :group 'foldvis
   :init-value nil
   :lighter " FoldVis"
-  (foldvis--choose-backend)
-  (cond (foldvis--backend
-         (if foldvis-mode (foldvis--enable) (foldvis--disable)))
-        (t (message "No folding backend found: %s" foldvis--backend)
-           (foldvis-mode -1))))
+  (if foldvis-mode (foldvis--enable) (foldvis--disable)))
 
 (defun foldvis--turn-on-foldvis-mode ()
   "Turn on the `foldvis-mode'."
@@ -380,6 +380,7 @@ Argument FOLDED holds folding state; it's a boolean."
 
 (defun foldvis--post-command ()
   "Post command."
+  (foldvis--choose-backend)
   (when foldvis--render-this-command-p
     (foldvis-refresh)
     (setq foldvis--render-this-command-p nil)))

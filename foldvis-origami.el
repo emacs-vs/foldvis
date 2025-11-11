@@ -77,20 +77,19 @@ Arguments WEND and WSTART are the range for caching."
 ;;;###autoload
 (defun foldvis-origami--refresh (&rest _)
   "Refresh indicators for all folding range."
-  (origami-util-with-current-buffer buffer
-    (when-let*
-        ((tree (ignore-errors (origami-get-fold-tree buffer)))
-         (nodes-to-fold (elt tree 4))
-         (wend   (window-end nil t))
-         (wstart (window-start))
-         (nodes-to-fold
-          (cl-remove-if-not (lambda (node)
-                              (foldvis-origami--within-window node wend wstart))
-                            nodes-to-fold)))
-      (foldvis--remove-ovs)
-      (thread-last nodes-to-fold
-                   (mapc #'foldvis-origami--create))
-      (run-hooks 'foldvis-refresh-hook))))
+  (when-let*
+      ((tree (ignore-errors (origami-get-fold-tree (current-buffer))))
+       (nodes-to-fold (elt tree 4))
+       (wend   (window-end nil t))
+       (wstart (window-start))
+       (nodes-to-fold
+        (cl-remove-if-not (lambda (node)
+                            (foldvis-origami--within-window node wend wstart))
+                          nodes-to-fold)))
+    (foldvis--remove-ovs)
+    (thread-last nodes-to-fold
+                 (mapc #'foldvis-origami--create))
+    (run-hooks 'foldvis-refresh-hook)))
 
 (provide 'foldvis-origami)
 ;;; foldvis-origami.el ends here

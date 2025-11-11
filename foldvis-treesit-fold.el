@@ -35,12 +35,12 @@
 ;;;###autoload
 (defun foldvis-treesit-fold--enable ()
   "Enable the folding minor mode."
-  (advice-add 'treesit-fold--after-command :after #'foldvis-treesit-fold--refresh))
+  (advice-add 'treesit-fold--after-command :after #'foldvis-refresh))
 
 ;;;###autoload
 (defun foldvis-treesit-fold--disable ()
   "Disable the folding minor mode."
-  (advice-remove 'treesit-fold--after-command #'foldvis-treesit-fold--refresh))
+  (advice-remove 'treesit-fold--after-command #'foldvis-refresh))
 
 ;;;###autoload
 (defun foldvis-treesit-fold--valid ()
