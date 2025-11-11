@@ -156,21 +156,26 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
 ;; (@* "Entry" )
 ;;
 
-(defun foldvis--choose-backend ()
-  "Set the current possible backend."
-  (setq foldvis--backend
-        (or foldvis--backend
-            (cl-some (lambda (x)
-                       (when (featurep x)
-                         x))
-                     foldvis-backends))))
-
-(defun foldvis--call-backend (name)
-  "Call the backend function by NAME."
-  (when-let* ((name (format "foldvis-%s-%s" foldvis--backend name))
+(defun foldvis--call-backend (name &optional backend)
+  "Call the BACKEND function by NAME."
+  (when-let* ((name (format "foldvis-%s-%s" (or backend
+                                                foldvis--backend)
+                            name))
               (name (intern name))
               ((fboundp name)))
     (funcall name)))
+
+(defun foldvis--choose-backend ()
+  "Set the current possible backend."
+  (let ((backend (cl-some (lambda (x)
+                            (when (foldvis--call-backend "-valid" x)
+                              x))
+                          foldvis-backends)))
+    (when (and foldvis--backend
+               (not (equal foldvis--backend backend)))  ; has changed?
+      ;; TODO: ..
+      )
+    (setq foldvis--backend backend)))
 
 (defun foldvis--enable ()
   "Start folding minor mode."
@@ -280,11 +285,11 @@ is created); this is used to determie what indicators' bitmap to use."
 This is a static/constant method."
   (let ((prior foldvis-priority))
     (cl-case bitmap
-      (foldvis-fr-plus (+ prior 2))
+      (foldvis-fr-plus       (+ prior 2))
       (foldvis-fr-minus-tail (+ prior 2))
-      (foldvis-fr-end-left (+ prior 1))
-      (foldvis-fr-end-right (+ prior 1))
-      (t prior))))
+      (foldvis-fr-end-left   (+ prior 1))
+      (foldvis-fr-end-right  (+ prior 1))
+      (t                     prior))))
 
 (defun foldvis--get-string (folded ov bitmap)
   "Return a string or nil for indicators overlay (OV).
@@ -330,10 +335,9 @@ Argument FOLDED holds folding state; it's a boolean."
               (last-ov (nth len-1 ov-lst))
               (index 1))
     ;; Head
-    (foldvis--active-ov
-     folded first-ov
-     (if folded 'foldvis-fr-plus
-       'foldvis-fr-minus-tail))
+    (foldvis--active-ov folded first-ov
+                        (if folded 'foldvis-fr-plus
+                          'foldvis-fr-minus-tail))
     ;; Last
     (foldvis--active-ov folded last-ov (foldvis--get-end-fringe))
     ;; In between `head' and `last'

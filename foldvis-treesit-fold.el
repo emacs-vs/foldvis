@@ -34,13 +34,18 @@
 
 ;;;###autoload
 (defun foldvis-treesit-fold--enable ()
-  "Start folding minor mode."
+  "Enable the folding minor mode."
   (advice-add 'treesit-fold--after-command :after #'foldvis-treesit-fold--refresh))
 
 ;;;###autoload
 (defun foldvis-treesit-fold--disable ()
-  "Stop folding minor mode."
+  "Disable the folding minor mode."
   (advice-remove 'treesit-fold--after-command #'foldvis-treesit-fold--refresh))
+
+;;;###autoload
+(defun foldvis-treesit-fold--valid ()
+  "Return non-nil if the backend is valid."
+  (and (featurep 'treesit-fold) treesit-fold-mode))
 
 ;;
 ;; (@* "Events" )
