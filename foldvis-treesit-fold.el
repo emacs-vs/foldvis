@@ -40,6 +40,7 @@
 (declare-function treesit-fold-overlay-at "ext:treesit-fold.el")
 (declare-function treesit-fold--get-fold-range "ext:treesit-fold.el")
 (declare-function treesit-fold-toggle "ext:treesit-fold.el")
+(declare-function treesit-fold-ready-p "ext:treesit-fold.el")
 
 ;;
 ;;; Entry
@@ -99,32 +100,32 @@ Arguments WEND and WSTART are the range for caching."
 ;;;###autoload
 (defun foldvis-treesit-fold--refresh (&rest _)
   "Refresh indicators for all folding range."
-  (when (ignore-errors (treesit-buffer-root-node))
-    (treesit-fold--ensure-ts
-      (when-let*
-          ((node (ignore-errors (treesit-buffer-root-node)))
-           (patterns (seq-mapcat (lambda (fold-range) `((,(car fold-range)) @name))
-                                 (alist-get major-mode treesit-fold-range-alist)))
-           (query (ignore-errors
-                    (treesit-query-compile (treesit-node-language node) patterns)))
-           (nodes-to-fold (treesit-query-capture node query))
-           (wend (window-end nil t))
-           (wstart (window-start))
-           (nodes-to-fold
-            (cl-remove-if-not (lambda (node)
-                                (ignore-errors
-                                  (foldvis-treesit-fold--within-window (cdr node) wend wstart)))
-                              nodes-to-fold))
-           (mode-ranges (alist-get major-mode treesit-fold-range-alist))
-           (nodes-to-fold
-            (cl-remove-if (lambda (node)
-                            (treesit-fold--non-foldable-node-p (cdr node) mode-ranges))
-                          nodes-to-fold)))
-        (foldvis--remove-ovs)
-        (thread-last nodes-to-fold
-                     (mapcar #'cdr)
-                     (mapc #'foldvis-treesit-fold--create))
-        (run-hooks 'foldvis-refresh-hook)))))
+  (when (and (treesit-fold-ready-p)
+             (ignore-errors (treesit-buffer-root-node)))
+    (when-let*
+        ((node (ignore-errors (treesit-buffer-root-node)))
+         (patterns (seq-mapcat (lambda (fold-range) `((,(car fold-range)) @name))
+                               (alist-get major-mode treesit-fold-range-alist)))
+         (query (ignore-errors
+                  (treesit-query-compile (treesit-node-language node) patterns)))
+         (nodes-to-fold (treesit-query-capture node query))
+         (wend (window-end nil t))
+         (wstart (window-start))
+         (nodes-to-fold
+          (cl-remove-if-not (lambda (node)
+                              (ignore-errors
+                                (foldvis-treesit-fold--within-window (cdr node) wend wstart)))
+                            nodes-to-fold))
+         (mode-ranges (alist-get major-mode treesit-fold-range-alist))
+         (nodes-to-fold
+          (cl-remove-if (lambda (node)
+                          (treesit-fold--non-foldable-node-p (cdr node) mode-ranges))
+                        nodes-to-fold)))
+      (foldvis--remove-ovs)
+      (thread-last nodes-to-fold
+                   (mapcar #'cdr)
+                   (mapc #'foldvis-treesit-fold--create))
+      (run-hooks 'foldvis-refresh-hook))))
 
 (provide 'foldvis-treesit-fold)
 ;;; foldvis-treesit-fold.el ends here

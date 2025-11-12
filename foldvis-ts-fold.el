@@ -108,31 +108,30 @@ Arguments WEND and WSTART are the range for caching."
 (defun foldvis-ts-fold--refresh (&rest _)
   "Refresh indicators for all folding range."
   (when tree-sitter-mode
-    (ts-fold--ensure-ts
-      (when-let*
-          ((node (ignore-errors (tsc-root-node tree-sitter-tree)))
-           (patterns (seq-mapcat (lambda (fold-range) `((,(car fold-range)) @name))
-                                 (alist-get major-mode ts-fold-range-alist)
-                                 'vector))
-           (query (ignore-errors
-                    (tsc-make-query tree-sitter-language patterns)))
-           (nodes-to-fold (tsc-query-captures query node #'ignore))
-           (wend   (window-end nil t))
-           (wstart (window-start))
-           (nodes-to-fold
-            (cl-remove-if-not (lambda (node)
-                                (foldvis-ts-fold--within-window (cdr node) wend wstart))
-                              nodes-to-fold))
-           (mode-ranges (alist-get major-mode ts-fold-range-alist))
-           (nodes-to-fold
-            (cl-remove-if (lambda (node)
-                            (ts-fold--non-foldable-node-p (cdr node) mode-ranges))
-                          nodes-to-fold)))
-        (foldvis--remove-ovs)
-        (thread-last nodes-to-fold
-                     (mapcar #'cdr)
-                     (mapc #'foldvis-ts-fold--create))
-        (run-hooks 'foldvis-refresh-hook)))))
+    (when-let*
+        ((node (ignore-errors (tsc-root-node tree-sitter-tree)))
+         (patterns (seq-mapcat (lambda (fold-range) `((,(car fold-range)) @name))
+                               (alist-get major-mode ts-fold-range-alist)
+                               'vector))
+         (query (ignore-errors
+                  (tsc-make-query tree-sitter-language patterns)))
+         (nodes-to-fold (tsc-query-captures query node #'ignore))
+         (wend   (window-end nil t))
+         (wstart (window-start))
+         (nodes-to-fold
+          (cl-remove-if-not (lambda (node)
+                              (foldvis-ts-fold--within-window (cdr node) wend wstart))
+                            nodes-to-fold))
+         (mode-ranges (alist-get major-mode ts-fold-range-alist))
+         (nodes-to-fold
+          (cl-remove-if (lambda (node)
+                          (ts-fold--non-foldable-node-p (cdr node) mode-ranges))
+                        nodes-to-fold)))
+      (foldvis--remove-ovs)
+      (thread-last nodes-to-fold
+                   (mapcar #'cdr)
+                   (mapc #'foldvis-ts-fold--create))
+      (run-hooks 'foldvis-refresh-hook))))
 
 (provide 'foldvis-ts-fold)
 ;;; foldvis-ts-fold.el ends here
