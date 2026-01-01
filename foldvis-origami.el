@@ -1,6 +1,6 @@
 ;;; foldvis-origami.el --- Display indicators for origami  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025  Shen, Jen-Chieh
+;; Copyright (C) 2025-2026  Shen, Jen-Chieh
 
 ;; This file is not part of GNU Emacs.
 

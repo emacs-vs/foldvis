@@ -1,6 +1,6 @@
 ;;; foldvis-hideshow.el --- Display indicators for hideshow  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025  Shen, Jen-Chieh
+;; Copyright (C) 2025-2026  Shen, Jen-Chieh
 
 ;; This file is not part of GNU Emacs.
 
