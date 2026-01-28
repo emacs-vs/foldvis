@@ -196,6 +196,7 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
 (defun foldvis--enable ()
   "Start folding minor mode."
   (foldvis--call-backend "-enable")
+  (add-hook 'after-change-functions #'foldvis--trigger-render nil t)
   (add-hook 'after-save-hook #'foldvis--trigger-render nil t)
   (add-hook 'post-command-hook #'foldvis--post-command nil t)
   (add-hook 'window-size-change-functions #'foldvis--size-change)
@@ -205,6 +206,7 @@ See macro `with-selected-window' description for arguments WINDOW and BODY."
   "Stop folding minor mode."
   (setq foldvis--backend nil)
   (foldvis--call-backend "-disable")
+  (remove-hook 'after-change-functions #'foldvis--trigger-render t)
   (remove-hook 'after-save-hook #'foldvis--trigger-render t)
   (remove-hook 'post-command-hook #'foldvis--post-command t)
   (remove-hook 'window-size-change-functions #'foldvis--size-change)
